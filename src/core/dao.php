@@ -41,7 +41,9 @@ class DAO extends Database {
 					}
 
 					foreach ($bean->toArray() as $k => $v) {
-						$query['body']['query']['bool']['must'][]['match'][$k] = $v;
+						if (!is_null($v)) {
+							$query['body']['query']['bool']['must'][]['match'][$k] = $v;
+						}
 					}
 
 					$ret = $this->getClient()->search($query);
@@ -112,9 +114,11 @@ class DAO extends Database {
 		}
 
 		if ($action == 'insert') {
-			if ($bean->getId()) {
-				$ret->setReturn(false);
-				$ret->addMsg(Msg::getMessage('error_es_id_on_insert'));
+			if ($this->getType() == "elasticsearch") {
+				if ($bean->getId()) {
+					$ret->setReturn(false);
+					$ret->addMsg(Msg::getMessage('error_es_id_on_insert'));
+				}
 			}
 		}
 
@@ -138,7 +142,7 @@ class DAO extends Database {
 		return $ret;
 	}
 
-	public function resultToMap($result) {
+	public function mapResult($result) {
 		$newResult = [];
 		switch ($this->getType()) {
 			case 'elasticsearch':

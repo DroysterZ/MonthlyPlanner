@@ -43,16 +43,16 @@ class Bean {
 			if (array_key_exists($field, $this->_dynamicFields)) {
 				return $this->_dynamicFields[$field];
 			} else {
-				Util::throwException(null, debug_backtrace());
+				throwException(null, debug_backtrace());
 			}
 		} else if ($op == 'set') {
 			if (array_key_exists($field, $this->_dynamicFields)) {
 				$this->_dynamicFields[$field] = array_shift($arguments);
 			} else {
-				Util::throwException(null, debug_backtrace());
+				throwException(null, debug_backtrace());
 			}
 		} else {
-			Util::throwException(null, debug_backtrace());
+			throwException(null, debug_backtrace());
 		}
 	}
 
