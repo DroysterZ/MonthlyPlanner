@@ -32,25 +32,52 @@ class DAO extends Database {
 	public function select(&$bean, $parameters = []) {
 		$ret = $this->validate($bean, 'select');
 		if ($ret->getReturn()) {
+			$query = $this->selectSQL($bean, $parameters);
+
 			switch ($this->getType()) {
 				case 'elasticsearch':
-					$query = [];
-					$query['index'] = $bean->getTable();
-					if ($bean->getId()) {
-						$query['body']['query']['ids']['values'][] = $bean->getId();
+					$ret = $this->getClient()->search($query);
+					break;
+			}
+			return $ret;
+		}
+	}
+
+	public function selectSQL(&$bean, $parameters = []) {
+		switch ($this->getType()) {
+			case 'elasticsearch':
+				$query = [];
+				$query['index'] = $bean->getTable();
+				if ($bean->getId()) {
+					$ids = $bean->getId();
+					if (!is_array($ids)) {
+						$ids = [$ids];
 					}
 
+					$query['body']['query']['ids']['values'] = $ids;
+				} else {
 					foreach ($bean->toArray() as $k => $v) {
 						if (!is_null($v)) {
 							$query['body']['query']['bool']['must'][]['match'][$k] = $v;
 						}
 					}
+				}
 
-					$ret = $this->getClient()->search($query);
-					return $ret;
+				return $query;
+				break;
+		}
+	}
 
-					break;
-			}
+	public function createMapFromResultSet($rst) {
+		switch ($this->getType()) {
+			case 'elasticsearch':
+				$results = $rst["hits"]["hits"];
+				$map = [];
+				foreach ($results as $data) {
+					$map[$data["_id"]] = $data["_source"];
+				}
+				return $map;
+				break;
 		}
 	}
 

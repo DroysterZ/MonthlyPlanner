@@ -15,19 +15,21 @@ class Bean {
 		$this->_id = $v;
 	}
 
-	function __construct($table) {
+	function __construct($table = "") {
 		$this->_table = $table;
 		$dao = new DAO();
 		switch ($dao->getType()) {
 			case 'elasticsearch':
-				$fields = $dao->getClient()->indices()->getMapping(['index' => [$table]]);
-				$fields = $fields[$table]['mappings']['properties'];
-
-				$data = [];
-				foreach ($fields as $k => $v) {
-					$data[$k] = null;
+				if ($table) {
+					$fields = $dao->getClient()->indices()->getMapping(['index' => [$table]]);
+					$fields = $fields[$table]['mappings']['properties'];
+	
+					$data = [];
+					foreach ($fields as $k => $v) {
+						$data[$k] = null;
+					}
+					$this->populate($data, true);
 				}
-				$this->populate($data);
 				break;
 
 			default:
@@ -61,12 +63,12 @@ class Bean {
 	 * 
 	 * Populate bean with a specified array
 	 */
-	public function populate($data) {
+	public function populate($data, $allowNewFields = false) {
 		foreach ($data as $k => $v) {
 			$method = "set" . ucfirst($k);
 			if (method_exists($this, $method)) {
 				$this->$method($v);
-			} else {
+			} else if ($allowNewFields) {
 				$this->_dynamicFields[$k] = $v;
 			}
 		}

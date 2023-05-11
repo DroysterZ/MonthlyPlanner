@@ -47,9 +47,33 @@ global $view;
 includeAllFromFolder(ROOT . 'src/core');
 
 if (isset($_REQUEST["action"])) {
-	include_once ROOT . $_REQUEST["action"];
-} else {
-	include_once ROOT . "view/index.php";
+	$request = $_REQUEST["action"];
+	$pathinfo = pathinfo($_REQUEST["action"]);
+
+	$action = "";
+	$filename = $pathinfo["filename"];
+	if (strpos($filename, ".") !== false) {
+		$class = substr($filename, 0, strpos($filename, "."));
+		$action = substr($filename, strpos($filename, ".") + 1);
+		$file = str_replace("." . $action, "", $pathinfo["basename"]);
+		include_once ROOT . $pathinfo["dirname"] . "/" . $file;
+
+		$classBean = ucfirst($class) . "Bean";
+		$classAction = ucfirst($class) . "Action";
+
+		if (class_exists($classBean)) {
+			$objBean = new $classBean;
+		} else {
+			$objBean = new Bean($class);
+		}
+		$objAction = new $classAction;
+		$objBean->populate($_REQUEST);
+		
+		$method = "execute" . ucfirst($action);
+		$data = $objAction->$method($objBean, $view);
+	} else {
+		include_once ROOT . $request;
+	}
 }
 
 if ($view) {
