@@ -7,6 +7,12 @@ class Bean {
 	public function getTable() {
 		return $this->_table;
 	}
+	public function setTable($v) {
+		$this->_table = $v;
+	}
+	public function getDynamicFields() {
+		return $this->_dynamicFields;
+	}
 
 	public function getId() {
 		return $this->_id;
@@ -21,8 +27,7 @@ class Bean {
 		switch ($dao->getType()) {
 			case 'elasticsearch':
 				if ($table) {
-					$fields = $dao->getClient()->indices()->getMapping(['index' => [$table]]);
-					$fields = $fields[$table]['mappings']['properties'];
+					$fields = $dao->mapFields($table);
 	
 					$data = [];
 					foreach ($fields as $k => $v) {
@@ -66,9 +71,10 @@ class Bean {
 	public function populate($data, $allowNewFields = false) {
 		foreach ($data as $k => $v) {
 			$method = "set" . ucfirst($k);
+			$fields = (new DAO())->mapFields($this->getTable());
 			if (method_exists($this, $method)) {
 				$this->$method($v);
-			} else if ($allowNewFields) {
+			} else if (array_key_exists($k, $fields) || $allowNewFields) {
 				$this->_dynamicFields[$k] = $v;
 			}
 		}

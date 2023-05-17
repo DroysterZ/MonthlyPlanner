@@ -1,29 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-	<base href="projeto.monthlyplanner.local">
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Monthly Planner</title>
-	<link rel="stylesheet" href="view/src/bootstrap/css/bootstrap.min.css">
-	<script src="view/src/bootstrap/js/bootstrap.min.js"></script>
-</head>
+<?php include_once ROOT . "view/parts/head.php" ?>
 
 <body>
-	<table>
-		<?php
-		foreach ($data as $row) {
-			$bean = new ListasBean();
-			$bean->populate($row);
-		?>
-			<tr>
-				<td style="border: 1px solid black"><?php echo $bean->getNome() ?></td>
-				<td style="border: 1px solid black"><?php echo $bean->getPreco() ?></td>
-			</tr>
-		<?php } ?>
-	</table>
+	<div class="container mx-auto">
+		<div class="content">
+			<table>
+				<?php foreach ($data as $row) { ?>
+					<?php $bean = new ListasBean(); ?>
+					<?php $bean->populate($row); ?>
+					<tr>
+						<td><?php echo $bean->getNome() ?></td>
+						<td><?php echo $bean->getPreco() ?></td>
+					</tr>
+				<?php } ?>
+			</table>
+		</div>
+		<div>
+			<form action="index.php" method="post">
+				<input type="hidden" name="action" value="src/classes/item.addItem.php">
+				<div>
+					<label for="nome">Nome</label>
+					<input type="text" name="nome" id="nome" />
+				</div>
+				<div>
+					<label for="preco">Preço</label>
+					<input type="number" name="preco" id="preco" />
+				</div>
+				<button type="submit">ADICIONAR</button>
+			</form>
+		</div>
+		<div>
+			<form action="index.php">
+				<input type="hidden" name="action" value="src/classes/listas.addItem.php">
+			</form>
+		</div>
+		<div class="content">
+			<form action="index.php">
+				<input type="hidden" name="action" value="src/classes/listas.listaHome.php">
+				<?php
+				$bean = new Bean("item");
+				?>
+				<input type="checkbox" name="item[]" id="item1" value="Item 1">
+				<input type="checkbox" name="item[]" id="item2" value="Item 2">
+				<input type="checkbox" name="item[]" id="item3" value="Item 3">
+				<button type="submit">ADICIONAR</button>
+			</form>
+		</div>
+	</div>
 </body>
 
-</html>
+<?php include_once ROOT . "view/parts/foot.php" ?>

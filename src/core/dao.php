@@ -5,11 +5,13 @@ class DAO extends Database {
 		if ($ret->getReturn()) {
 			switch ($this->getType()) {
 				case 'elasticsearch':
-					$data = $bean->toArray();
-					$params['index'] = $bean->getTable();
+					$newBean = $this->filterBean($bean);
+
+					$data = $newBean->toArray();
+					$params['index'] = $newBean->getTable();
 					$params['body'] = $data;
-					if ($bean->getId()) {
-						$params['id'] = $bean->getId();
+					if ($newBean->getId()) {
+						$params['id'] = $newBean->getId();
 					}
 
 					try {
@@ -43,7 +45,7 @@ class DAO extends Database {
 		}
 	}
 
-	public function selectSQL(&$bean, $parameters = []) {
+	public function selectSQL($bean, $parameters = []) {
 		switch ($this->getType()) {
 			case 'elasticsearch':
 				$query = [];
@@ -183,6 +185,33 @@ class DAO extends Database {
 		}
 
 		return $newResult;
+	}
+
+	public function mapFields($table) {
+		switch ($this->getType()) {
+			case "elasticsearch":
+				$mappings = $this->getClient()->indices()->getMapping(['index' => [$table]])[$table];
+				$filteredMappings = $mappings["mappings"]["properties"];
+				return $filteredMappings;
+				break;
+		}
+	}
+
+	public function filterBean($bean) {
+		$fields = $this->mapFields($bean->getTable());
+		$newData = [];
+		foreach ($fields as $field => $v) {
+			$method = "get" . ucfirst($field);
+			if (method_exists($bean, $method) || array_key_exists($field, $bean->getDynamicFields())) {
+				$newData[$field] = $bean->$method();
+			}
+		}
+
+		$class = get_class($bean);
+		$newBean = new $class;
+		$newBean->setTable($bean->getTable());
+		$newBean->populate($newData, true);
+		return $newBean;
 	}
 }
 

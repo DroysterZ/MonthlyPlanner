@@ -1,5 +1,9 @@
 <?php
 class ListasBean extends Bean {
+	public function __construct($table = "listas") {
+		parent::__construct($table);
+	}
+
 	private $nome;
 	public function getNome() {
 		return $this->nome;
@@ -40,7 +44,9 @@ class ListasAction {
 	public function executeListaHome(&$bean, &$view) {
 		$view = "view/actions/home.php";
 		$dao = new ListasDAO();
-		$data = $dao->selectLista($bean);
+		$newBean = new ListasBean();
+		$newBean->setId($bean->getId());
+		$data = $dao->selectLista($newBean);
 		return $data;
 	}
 }
